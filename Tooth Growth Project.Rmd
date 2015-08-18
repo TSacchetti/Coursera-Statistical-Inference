@@ -1,0 +1,100 @@
+---
+title: "Statistical Inference Project Tooth Growth"
+author: "Thomas Sacchetti"
+date: "August 17, 2015"
+output: html_document
+---
+#Overview
+This project will examine utilize technique from the Johns Hopkins Statistical Inference class, to gain insights into the Tooth Growth dataset. We will use hypothesis testing and confidence intervals in order to develop a strong understanding of the dataset as a whole. We will answer two questions first does the supplement type effect the results of Tooth Growth. Second, we will check to see if the growth increases as dosage increases.
+
+#Load Data
+```{r}
+library(ggplot2)
+data(ToothGrowth)
+summary(ToothGrowth)
+```
+From the summary we can say that we know the dosage is between .5 and 2 and the length is between 4 and 34.
+```{r}
+table(is.na(ToothGrowth))
+```
+Additionally we know that there are no NA values in the data set from the above table. Now we will look at a quick discovery plot to get a sense for distribution.
+```{r, warning=FALSE, message=FALSE}
+g <- ggplot(ToothGrowth, aes(dose, len))
+g + geom_point(aes(color = supp), size = 4, alpha = 1/2) + labs(title = "Tooth Growth") + labs(x ="Dose", y="Tooth Length") + geom_smooth(aes(color = supp))
+```
+
+#Question 1
+
+We will begin by answering the first question, is the a different effect on OJ or VC growth. In order to do this we will compare mean, standard deviation and varaition accross each of the sets. In this case we are testing the null hypothesis HO, Supplement type does not have an effect on Length H1, Supplement length is effected by the choice of supplement. 
+```{r}
+OJ.dat = ToothGrowth[ToothGrowth$supp == "OJ",]
+VC.dat = ToothGrowth[ToothGrowth$supp == "VC",]
+
+mean.OJ = mean(OJ.dat[,"len"])
+sd.OJ = sd(OJ.dat[,"len"])
+length.OJ = length(OJ.dat[,1])
+
+mean.VC = mean(VC.dat[,"len"])
+sd.VC = sd(VC.dat[,"len"])
+length.VC = length(VC.dat[,1])
+
+OJ.stats = c(mean.OJ,sd.OJ,length.OJ)
+VC.stats = c(mean.VC,sd.VC,length.VC)
+Total = as.data.frame(OJ.stats)
+Total = cbind(Total,VC.stats)
+row.names(Total) = c("Mean", "Standard Deviation", "Length")
+as.matrix(Total)
+```
+Now that we have a general idea from the above table of the general layout of the data we can proceed with a T test.
+
+```{r}
+t.test(OJ.dat$len, VC.dat$len, paired = FALSE, var.equal = TRUE)
+```
+
+From the results of the T.test we fail to reject the null hypothesis for the T.test.
+
+#Question 2
+```{r}
+dat.5 = ToothGrowth[ToothGrowth$dose == 0.5,]
+dat.1 = ToothGrowth[ToothGrowth$dose == 1.00,]
+dat.2 = ToothGrowth[ToothGrowth$dose == 2.00,]
+
+
+mean.5 = mean(dat.5[,"len"])
+sd.5 = sd(dat.5[,"len"])
+length.5 = length(dat.5[,1])
+
+mean.1 = mean(VC.dat[,"len"])
+sd.1 = sd(dat.1[,"len"])
+length.1 = length(dat.1[,1])
+
+mean.2 = mean(VC.dat[,"len"])
+sd.2 = sd(dat.1[,"len"])
+length.2 = length(dat.2[,1])
+
+stats.5 = c(mean.5,sd.5,length.5)
+stats.2 = c(mean.2,sd.2,length.2)
+stats.1 = c(mean.1,sd.1,length.1)
+
+Total = as.data.frame(stats.5)
+Total = cbind(Total,stats.1,stats.2)
+row.names(Total) = c("Mean", "Standard Deviation", "Length")
+as.matrix(Total)
+```
+Now we must T test in the incremental intervals in order to show that as dosage increases the growth increases. The first test tests the dosage increase from .5 to 1.00.
+```{r}
+t.test(dat.1$len, dat.5$len, paired = FALSE, var.equal = TRUE,alternative = "greater")
+```
+Given the low p value we are able to reject the null hypothesis. Now we will t.test the dosage from 1.00 to 2.00.
+```{r}
+t.test(dat.2$len, dat.1$len, paired = FALSE, var.equal = TRUE,alternative = "greater")
+```
+We are again able to reject the null hypothesis because the p value is less than .05. Lastly we will check the growth from .5 to 2.00.
+```{r}
+t.test(dat.2$len, dat.5$len, paired = FALSE, var.equal = TRUE,alternative = "greater")
+```
+Again with our low p value we are able to reject our null hypothesis.
+
+#Conclusion
+
+In response the question one we are not able to reject our null hypothesis from out t test, to claim that the supplement type does have an effect on growth rate. For the second question we were once again able to confirm out alternate hypothesis from the three different t.tests that were performed. 

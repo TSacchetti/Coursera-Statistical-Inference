@@ -1,0 +1,82 @@
+---
+title: "Statistical Inference Project of The Central Limit Theorem"
+author: "Thomas Sacchetti"
+date: "August 17, 2015"
+output: html_document
+---
+#Overview
+This report will use R code to explore The Central Limit Theorem. We will show where the distribution is centered and how vairable it is.
+
+#The Problem
+
+The exponential distribution can be simulated in R with rexp(n, lambda) where lambda is the rate parameter. The mean of exponential distribution is 1/lambda and the standard deviation is also also 1/lambda. Set lambda = 0.2 for all of the simulations. In this simulation, you will investigate the distribution of averages of 40 exponential(0.2)s. Note that you will need to do a thousand or so simulated averages of 40 exponentials.
+
+Illustrate via simulation and associated explanatory text the properties of the distribution of the mean of 40 exponential(0.2)s. You should
+
+1: Show where the distribution is centered at and compare it to the theoretical center of the distribution.
+
+2: Show how variable it is and compare it to the theoretical variance of the distribution.
+
+S: Show that the distribution is approximately normal.
+
+
+#Set Up
+To begin we will look open the necessary packages and set the seed.
+
+```{r}
+require(knitr)
+require(ggplot2)
+set.seed(1)
+```
+
+From the problem above we can see that we want to set n = 40, lambda = .2 and the # of Sim = 3000. 
+```{r}
+n<-40
+lambda<-0.2
+numsim<-3000
+```
+#Data
+Data will be generated using the Rexp function.
+```{r}
+data  = matrix(rexp(n*numsim,lambda),numsim)
+Row.mean = apply(data,1,mean)
+```
+#Question 1
+Show where the distribution is centered at and compare it to the theoretical center of the distribution. The following code compares the theoretical vs actual mean. 
+```{r}
+Theo.Mean = 1/lambda
+Act.Mean = mean(data)
+```
+So we can see that the actual mean is within .005 of the theoretical mean. 
+
+#Question 2
+Show how variable it is and compare it to the theoretical variance of the distribution.The following code compares the theoretical vs actual standard deviations.
+
+```{r}
+Theo.Sd = Theo.Mean * (1/sqrt(n))
+Act.Sd = sd(Row.mean)
+Sd.Change = Theo.Sd - Act.Sd
+```
+We can see that the standard deviation is within .01 of the theoretical standard deviation.
+
+#Question 3
+```{r}
+Theo.var = Theo.Sd^2
+Act.var<-var(Row.mean)
+var.change = Theo.var - Act.var
+```
+We can see that the standard deviation is within .015 of the theoretical variance.
+
+#Visualization
+```{r}
+data.new = data.frame(Row.mean)
+mp<-ggplot(data.new,aes(x=Row.mean))
+mp<-mp+geom_histogram(binwidth = lambda,fill="blue",color="black",aes(y = ..density..))
+mp<-mp + geom_vline(xintercept=Act.Mean,size=1.0, color="black")
+mp<-mp + stat_function(fun=dnorm,args=list(mean=Act.Mean, sd=Act.Sd),color = "orange", size = 1.0)
+mp<-mp + stat_function(fun=dnorm,args=list(mean=Theo.Mean, sd=Theo.Sd),color = "red", size = 1.0)
+mp
+```
+
+#Conclusion
+Question 1 simulation was within .005 of the hypothetical value. Question 2 was within .01 of the hypothetical standard deviation. Question 3 was within .015 of the theoretical variance
